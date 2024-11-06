@@ -67,17 +67,6 @@ void Robonomics::createAndSendExtrinsic(Data call) {
     sendExtrinsic(edata_, requestId);
 }
 
-Data Robonomics::createCall() {
-    Data call;
-    std::vector<uint8_t> callStr = hex2bytes(CALL_ENCODED);
-    append(call, callStr);
-    Serial.printf("Call size %d : \n", call.size());
-    // for (int k = 0; k < call.size(); k++) 
-    //     Serial.printf("%02x", call[k]);
-    // Serial.println("");
-    return call;
-}
-
 Data Robonomics::createPayload(Data call, uint32_t era, uint64_t nonce, uint64_t tip, uint32_t sv, uint32_t tv, std::string gen, std::string block) {
     Data data_ = doPayload (call, era, nonce, tip, sv, tv, gen, block);
     Serial.printf("\nPayload size %d : \n", data_.size());

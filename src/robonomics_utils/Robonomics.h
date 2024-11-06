@@ -16,7 +16,6 @@ private:
     String extrinsicResult;
     bool got_extrinsic_result = false;
     void createAndSendExtrinsic(Data call);
-    Data createCall();
     Data createPayload(Data call, uint32_t era, uint64_t nonce, uint64_t tip, uint32_t sv, uint32_t tv, std::string gen, std::string block);
     Data createSignature(Data data, uint8_t privateKey[32], uint8_t publicKey[32]);
     Data createSignedExtrinsic(Data signature, Data pubKey, uint32_t era, uint64_t nonce, uint64_t tip, Data call);
