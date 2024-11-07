@@ -29,7 +29,7 @@ void writeBytesToNVS(const char *key, const uint8_t *data, size_t data_length) {
 
 // Function to read bytes (blob) from NVS
 bool readBytesFromNVS(const char *key, uint8_t *buffer, size_t buffer_size) {
-    Serial.printf("Read bytes to nvs key %s\r\n", key);
+    Serial.printf("Read bytes from nvs key %s\r\n", key);
     preferences.begin(ROBONOMICS_STORAGE, true);
     size_t required_size = preferences.getBytesLength(key);
 

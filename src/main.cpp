@@ -9,6 +9,7 @@
 Robonomics robonomics;
 TempSensorData sensor_data;
 unsigned long last_datalog_time = 0;
+unsigned long wifi_start_time = 0;
 
 void get_or_generate_private_key(uint8_t *robonomicsPrivateKey) {
     char* robonomicsSs58Address;
@@ -67,10 +68,23 @@ void setup() {
 
 void loop() {
     get_temp_data(& sensor_data);
+    Serial.println("Connecting WiFi");
+    wifi_start_time = millis();
     WiFi.begin(user_data.ssid, user_data.password);
     while ( WiFi.status() != WL_CONNECTED ) {
         vTaskDelay(500 /portTICK_PERIOD_MS);
-        ESP_LOGI(TAG, "." );
+        Serial.print("." );
+        if ((millis() - wifi_start_time) > WIFI_CONNECTING_DELAY) {
+            user_data = get_wifi_creds_from_user(robonomics.getSs58Address());
+            Serial.println("After server");
+            writeStringToNVS(WIFI_SSID_NVS_KEY, user_data.ssid.c_str());
+            writeStringToNVS(WIFI_PASSWORD_NVS_KEY, user_data.password.c_str());
+            writeStringToNVS(SERVER_IP_NVS_KEY, user_data.server_ip.c_str());
+            break;
+        }
+    }
+    if ( WiFi.status() == WL_CONNECTED ) {
+        Serial.println("WiFi connected");
     }
     if (user_data.server_ip != "") {
         Serial.println("Sending to server");

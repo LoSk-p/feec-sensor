@@ -63,6 +63,11 @@ void print_values(TempSensorData *temp_data) {
 }
 
 void get_temp_data(TempSensorData *temp_data) {
+#ifdef TEST_SENSOR_USE
+    temp_data->humidity = 17;
+    temp_data->temperature = 15;
+    temp_data->pressure = -1;
+#endif
 #ifdef DHT_USE
     temp_data->humidity = dht22.readHumidity();
     temp_data->temperature = dht22.readTemperature();
