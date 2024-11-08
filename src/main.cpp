@@ -87,6 +87,7 @@ void loop() {
         vTaskDelay(500 /portTICK_PERIOD_MS);
         Serial.print("." );
         if ((millis() - wifi_start_time) > WIFI_CONNECTING_DELAY) {
+            WiFi.disconnect(true);
             user_data = get_wifi_creds_from_user(robonomics.getSs58Address());
             Serial.println("After server");
             writeStringToNVS(WIFI_SSID_NVS_KEY, user_data.ssid.c_str());
