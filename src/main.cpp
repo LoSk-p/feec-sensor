@@ -10,19 +10,31 @@ Robonomics robonomics;
 TempSensorData sensor_data;
 unsigned long last_datalog_time = 0;
 unsigned long wifi_start_time = 0;
+char privateKeyHex[PRIVATE_KEY_LENGTH * 2 + 1];
+
+void convertToHex(const uint8_t *input, size_t length, char *output) {
+    for (size_t i = 0; i < length; i++) {
+        sprintf(output + (i * 2), "%02X", input[i]);
+    }
+    output[length * 2] = '\0'; // Null-terminate the string
+}
 
 void get_or_generate_private_key(uint8_t *robonomicsPrivateKey) {
+    convertToHex(robonomicsPrivateKey, PRIVATE_KEY_LENGTH, privateKeyHex);
+    Serial.printf("Robonomics Private Key in Hex: %s\n", privateKeyHex);
     char* robonomicsSs58Address;
-    bool res = readBytesFromNVS(ROBONOMICS_PRIVATE_KEY_NVS_KEY, robonomicsPrivateKey, sizeof(robonomicsPrivateKey));
+    bool res = readBytesFromNVS(ROBONOMICS_PRIVATE_KEY_NVS_KEY, robonomicsPrivateKey, PRIVATE_KEY_LENGTH);
     if (res) {
         robonomicsSs58Address = getAddrFromPrivateKey(robonomicsPrivateKey);
         ESP_LOGI(TAG, "Robonomics Address: %s", robonomicsSs58Address);
     } else {
         Ed25519::generatePrivateKey(robonomicsPrivateKey);
-        writeBytesToNVS(ROBONOMICS_PRIVATE_KEY_NVS_KEY, robonomicsPrivateKey, sizeof(robonomicsPrivateKey));
+        writeBytesToNVS(ROBONOMICS_PRIVATE_KEY_NVS_KEY, robonomicsPrivateKey, PRIVATE_KEY_LENGTH);
         robonomicsSs58Address = getAddrFromPrivateKey(robonomicsPrivateKey);
         ESP_LOGI(TAG, "Robonomics Address: %s", robonomicsSs58Address);
     }
+    convertToHex(robonomicsPrivateKey, PRIVATE_KEY_LENGTH, privateKeyHex);
+    Serial.printf("Robonomics Private Key in Hex: %s\n", privateKeyHex);
     delete[] robonomicsSs58Address;
 }
 

@@ -57,14 +57,45 @@ String generateHtmlContent(const char* robonomicsSs58Address) {
         input[type="submit"]:hover {
             background-color: #0056b3; /* Darker blue on hover */
         }
+        .toggle-password {
+            position: relative;
+            display: inline-block;
+        }
+        .toggle-password button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
     </style>
+    <script>
+        function togglePassword() {
+            var passwordField = document.getElementById("password");
+            var toggleButton = document.getElementById("toggleButton");
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+                toggleButton.textContent = "Hide";
+            } else {
+                passwordField.type = "password";
+                toggleButton.textContent = "Show";
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="container">
         <h1>Enter WiFi Credentials</h1>
         <form action="/save" method="POST">
             SSID: <input type="text" name="ssid" required><br>
-            Password: <input type="password" name="password" required><br>
+            <div class="toggle-password">
+                Password: <input type="password" id="password" name="password" required>
+                <button type="button" id="toggleButton" onclick="togglePassword()">Show</button>
+            </div>
+            <br>
             Server IP Address (Optional): <input type="text" name="server_ip"><br>
             <input type="submit" value="Save">
         </form>

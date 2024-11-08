@@ -11,7 +11,7 @@
 #endif
 
 #ifdef DHT_USE
-DHT dht22(DHT22_PIN, DHT22);
+DHT dht22(DHT22_PIN, DHT11);
 #endif
 #ifdef BME_USE
 Adafruit_BME280 bme;
