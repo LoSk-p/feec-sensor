@@ -9,6 +9,7 @@
 Robonomics robonomics;
 TempSensorData sensor_data;
 unsigned long last_datalog_time = 0;
+unsigned long last_server_time = 0;
 unsigned long wifi_start_time = 0;
 char privateKeyHex[PRIVATE_KEY_LENGTH * 2 + 1];
 
@@ -80,36 +81,47 @@ void setup() {
 
 void loop() {
     get_temp_data(& sensor_data);
-    Serial.println("Connecting WiFi");
-    wifi_start_time = millis();
-    WiFi.begin(user_data.ssid, user_data.password);
-    while ( WiFi.status() != WL_CONNECTED ) {
-        vTaskDelay(500 /portTICK_PERIOD_MS);
-        Serial.print("." );
-        if ((millis() - wifi_start_time) > WIFI_CONNECTING_DELAY) {
-            WiFi.disconnect(true);
-            user_data = get_wifi_creds_from_user(robonomics.getSs58Address());
-            Serial.println("After server");
-            writeStringToNVS(WIFI_SSID_NVS_KEY, user_data.ssid.c_str());
-            writeStringToNVS(WIFI_PASSWORD_NVS_KEY, user_data.password.c_str());
-            writeStringToNVS(SERVER_IP_NVS_KEY, user_data.server_ip.c_str());
-            break;
+    Serial.print("Datalog timeout: ");
+    Serial.print((millis() - last_datalog_time)/1000);
+    Serial.print(" / ");
+    Serial.print(DATALOG_SENDING_TIMEOUT/1000);
+    Serial.print(", Server timeout: ");
+    Serial.print((millis() - last_server_time)/1000);
+    Serial.print(" / ");
+    Serial.println(SERVER_SENDING_TIMEOUT/1000);
+    if (millis() - last_server_time > SERVER_SENDING_TIMEOUT) {
+        Serial.println("Connecting WiFi");
+        wifi_start_time = millis();
+        WiFi.begin(user_data.ssid, user_data.password);
+        while ( WiFi.status() != WL_CONNECTED ) {
+            vTaskDelay(500 /portTICK_PERIOD_MS);
+            Serial.print("." );
+            if ((millis() - wifi_start_time) > WIFI_CONNECTING_DELAY) {
+                WiFi.disconnect(true);
+                user_data = get_wifi_creds_from_user(robonomics.getSs58Address());
+                Serial.println("After server");
+                writeStringToNVS(WIFI_SSID_NVS_KEY, user_data.ssid.c_str());
+                writeStringToNVS(WIFI_PASSWORD_NVS_KEY, user_data.password.c_str());
+                writeStringToNVS(SERVER_IP_NVS_KEY, user_data.server_ip.c_str());
+                break;
+            }
         }
+        if ( WiFi.status() == WL_CONNECTED ) {
+            Serial.println("WiFi connected");
+        }
+        if (user_data.server_ip != "") {
+            Serial.println("Sending to server");
+            sendSensorDataToServer(user_data.server_ip, & sensor_data, robonomics.getSs58Address());
+        }
+        if (millis() - last_datalog_time > DATALOG_SENDING_TIMEOUT) {
+            robonomics.setup();
+            String datalog_data = get_data_string(& sensor_data);
+            robonomics.sendDatalogRecord(datalog_data.c_str());
+            robonomics.disconnectWebsocket();
+            last_datalog_time = millis();
+        }
+        WiFi.disconnect(true);
+        last_server_time = millis();
     }
-    if ( WiFi.status() == WL_CONNECTED ) {
-        Serial.println("WiFi connected");
-    }
-    if (user_data.server_ip != "") {
-        Serial.println("Sending to server");
-        sendSensorDataToServer(user_data.server_ip, & sensor_data, robonomics.getSs58Address());
-    }
-    if (millis() - last_datalog_time > DATALOG_SENDING_TIMEOUT) {
-        robonomics.setup();
-        String datalog_data = get_data_string(& sensor_data);
-        robonomics.sendDatalogRecord(datalog_data.c_str());
-        robonomics.disconnectWebsocket();
-        last_datalog_time = millis();
-    }
-    WiFi.disconnect(true);
-    delay(SERVER_SENDING_TIMEOUT);
+    delay(5000);
 }
